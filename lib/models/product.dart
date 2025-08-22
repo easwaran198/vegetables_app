@@ -1,12 +1,12 @@
 class Product {
-  final String id;
-  final String name;
-  final String unit;
-  final String price;
-  final String max;
-  final String rating;
-  final String tamilName;
-  final String productBenefits;
+  final dynamic id;
+  final dynamic name;
+  final dynamic unit;
+  final dynamic price;
+  final dynamic max;
+  final dynamic rating;
+  final dynamic tamilName;
+  final dynamic productBenefits;
   final List<String> images;
 
   Product({
@@ -21,21 +21,17 @@ class Product {
     required this.images,
   });
 
-
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      unit: json['unit'] as String,
-      price: json['price'] as String,
-      max: json['max'] as String,
-      rating: json['rating'] as String,
-      tamilName: json['tamil_name'] as String,
-      productBenefits: json['product_benefits'] as String,
-      // Map the list of image objects to a list of image URLs
-      images: (json['images'] as List<dynamic>)
-          .map((imageJson) => imageJson['image'] as String)
-          .toList(),
+      id: json['id'],
+      name: json['name'],
+      unit: json['unit'],
+      price: json['price'],
+      max: json['max'],
+      rating: json['rating'],
+      tamilName: json['tamil_name'],
+      productBenefits: json['product_benefits'],
+      images: (json['images'] as List<dynamic>).map((i) => i['image'] as String).toList(),
     );
   }
 }

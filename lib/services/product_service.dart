@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -8,7 +10,77 @@ class ProductService {
 
   ProductService(this._dio);
 
+
   Future<Response> getProducts({Map<String, dynamic>? params}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+
+    try {
+      print('Sending POST request with params: ${json.encode(params)}');
+
+      final response = await _dio.post(
+        'http://ttbilling.in/vegetable_app/api/product_list',
+        data: params, // Send parameters in request body
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+          },
+        ),
+      );
+
+      print('Request URL: ${response.requestOptions.uri}');
+      print('Request data: ${json.encode(response.requestOptions.data)}');
+
+      return response;
+    } on DioException catch (e) {
+      print('Dio error (getProducts): ${e.response?.statusCode} - ${e.response?.data}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Your session may have expired. Please log in again.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Error fetching products: $e');
+      rethrow;
+    }
+  }
+
+  Future<Response> getProducts2({Map<String, dynamic>? params}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+
+    try {
+      final response = await _dio.get(
+        'http://ttbilling.in/vegetable_app/api/product_list',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+          },
+        ),
+        queryParameters: params,
+      );
+      return response;
+    } on DioException catch (e) {
+      print('Dio error (getProducts): ${e.response?.statusCode} - ${e.response?.data}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Your session may have expired. Please log in again.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Error fetching products: $e');
+      rethrow;
+    }
+  }
+  Future<Response> getOfferProducts({Map<String, dynamic>? params}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
@@ -27,6 +99,9 @@ class ProductService {
         ),
         queryParameters: params, // Add this line
       );
+      print("http://ttbilling.in/vegetable_app/api/product_list");
+      //print(json.encode(response));
+      print(response);
       return response;
     } on DioException catch (e) {
       print('Dio error (getProducts): ${e.response?.statusCode} - ${e.response?.data}');
@@ -39,8 +114,74 @@ class ProductService {
       rethrow;
     }
   }
+  Future<Response> getCategories() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
 
-  // New method for fetching offer products
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+
+    try {
+      final response = await _dio.get(
+        'https://ttbilling.in/vegetable_app/api/category',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+          },
+        )
+      );
+      print("https://ttbilling.in/vegetable_app/api/category");
+      //print(json.encode(response));
+      print(response);
+      return response;
+    } on DioException catch (e) {
+      print('Dio error (fetchCategories): ${e.response?.statusCode} - ${e.response?.data}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Your session may have expired. Please log in again.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Error fetching fetchCategories: $e');
+      rethrow;
+    }
+  }
+  Future<Response> getFrequentOrders() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+
+    try {
+      final response = await _dio.get(
+        'https://ttbilling.in/vegetable_app/api/frequent',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+          },
+        )
+      );
+      print("https://ttbilling.in/vegetable_app/api/frequent");
+      //print(json.encode(response));
+      //print(response);
+      return response;
+    } on DioException catch (e) {
+      print('Dio error (getFrequentOrders): ${e.response?.statusCode} - ${e.response?.data}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Your session may have expired. Please log in again.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Error fetching getFrequentOrders: $e');
+      rethrow;
+    }
+  }
+
+ /* // New method for fetching offer products
   Future<Response> getOfferProducts() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
@@ -70,10 +211,9 @@ class ProductService {
       print('Error fetching offer products: $e');
       rethrow;
     }
-  }
+  }*/
 }
 
-// Riverpod Provider for ProductService (remains the same)
 final productServiceProvider = Provider<ProductService>((ref) {
   final dio = ref.watch(dioProvider);
   return ProductService(dio);

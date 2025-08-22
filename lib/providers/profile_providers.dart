@@ -37,7 +37,7 @@ class ProfileNotifier extends StateNotifier<Profile?> {
     try {
       // Optimistic update: update locally first for a snappier UI
       // Ensure your Profile model has a 'profileimg' field for this to work correctly.
-      // Also, ensure all non-nullable fields of Profile are handled if state is null
+
       state = state?.copyWith(
         name: name,
         mobileno: mobileno,
@@ -57,11 +57,9 @@ class ProfileNotifier extends StateNotifier<Profile?> {
         // Example: userId: 'temp_user_id', if userId is part of your Profile model
       );
 
-
-      // Call the API to actually save the changes
       // Pass the context received by this method to the service call
       await _profileService.updateProfile(
-        context: context, // <--- PASS THE CONTEXT HERE
+        context: context,
         name: name,
         mobileno: mobileno,
         mail: mail,
@@ -94,8 +92,6 @@ final profileNotifierProvider = StateNotifierProvider<ProfileNotifier, Profile?>
   return ProfileNotifier(profileService);
 });
 
-// Extension to Profile model for copyWith for easier local updates
-// IMPORTANT: Ensure your Profile model has a 'profileimg' field (e.g., String? profileimg;)
 extension ProfileCopyWith on Profile {
   Profile copyWith({
     String? success, // Added success to copyWith
@@ -114,8 +110,6 @@ extension ProfileCopyWith on Profile {
       address: address ?? this.address,
       mail: mail ?? this.mail,
       profileimg: profileimg ?? this.profileimg, // Update profileimg
-      // Ensure all other fields from Profile model are also copied if they exist
-      // e.g., userId: this.userId, etc.
     );
   }
 }

@@ -1,15 +1,14 @@
-// lib/screens/explore_screen.dart
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:vegetables_app/models/frequent_product.dart';
 import 'package:vegetables_app/models/offer_product.dart';
+import 'package:vegetables_app/providers/home_data_notifier.dart';
 import 'package:vegetables_app/screens/product_detail_screen.dart';
 import 'package:vegetables_app/utils/contants_color.dart'; // Assuming this defines 'backgroundColor'
 import 'package:vegetables_app/widgets/MyHeadingText.dart'; // Your custom heading text widget
 import 'package:vegetables_app/widgets/MyTextContent.dart'; // Your custom text content widget
 import 'package:vegetables_app/models/product.dart'; // Your Product model
-import 'package:vegetables_app/providers/product_list_notifier.dart'; // Your product list Riverpod notifier
 import 'package:vegetables_app/widgets/quantity_selector.dart'; // Your API-integrated QuantitySelector
 
 
@@ -22,7 +21,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = ''; // State to hold the current search query
+  String _searchQuery = '';
 
   @override
   void initState() {
@@ -55,10 +54,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final productListAsyncValue = ref.watch(productListNotifierProvider);
+    final productListAsyncValue = ref.watch(productListNotifierProvider("3"));
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
-
 
     return Scaffold(
       body: SafeArea(
@@ -316,7 +314,7 @@ class OfferCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              // Left: Text info
+              // Left: Text info1
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,7 +326,7 @@ class OfferCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Text("₹${item.price}", // Dynamic current price
+                        Text("₹${item.price.toString()}", // Dynamic current price
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold)),
                         // Only show original price if it's different and meaningful

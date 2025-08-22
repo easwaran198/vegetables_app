@@ -6,12 +6,11 @@ import 'package:vegetables_app/models/MyOrderRestwo.dart';
 
 enum OrderType { active, completed, cancelled }
 
-// State class to hold the data for our orders screen
 class OrderState {
-  final List<Cart> orders; // List of fetched orders
-  final bool isLoading; // True when data is being fetched
-  final String? errorMessage; // Stores error messages if any
-  final OrderType selectedType; // Tracks the currently selected order type (tab)
+  final List<Cart> orders;
+  final bool isLoading;
+  final String? errorMessage;
+  final OrderType selectedType;
 
   OrderState({
     this.orders = const [],
@@ -20,7 +19,6 @@ class OrderState {
     this.selectedType = OrderType.active,
   });
 
-  // Helper method to create a new OrderState with updated values
   OrderState copyWith({
     List<Cart>? orders,
     bool? isLoading,
@@ -36,14 +34,14 @@ class OrderState {
   }
 }
 
-// StateNotifier to manage the OrderState
+
 class OrderNotifier extends StateNotifier<OrderState> {
   OrderNotifier() : super(OrderState()); // Initialize with default state
 
-  // Base URL for your API endpoint
+
   final String _baseUrl = "http://ttbilling.in/vegetable_app/api/common/my_orders.php";
 
-  // Method to retrieve the authentication token from SharedPreferences
+
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');

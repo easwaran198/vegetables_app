@@ -4,9 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vegetables_app/models/profile_model.dart'; // Make sure this path is correct
 
-// API URLs
+
 const String myProfileApiUrl = 'http://ttbilling.in/vegetable_app/api/common/my_profile.php';
-// Assuming you'll have an API endpoint for updating the profile
 const String updateProfileApiUrl = 'https://ttbilling.in/vegetable_app/api/editprofile'; // Placeholder URL
 
 class ProfileService {
@@ -62,9 +61,9 @@ class ProfileService {
     }
   }
 
-  // --- MODIFIED METHOD: Add BuildContext parameter ---
-  Future<void> updateProfile({ // Changed return type to void as SnackBar is a UI action
-    required BuildContext context, // Add BuildContext parameter here
+
+  Future<void> updateProfile({
+    required BuildContext context,
     required String name,
     required String mail,
     String? address,
