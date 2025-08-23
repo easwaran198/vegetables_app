@@ -316,6 +316,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
 
                       Container(
                         width: double.infinity,
+                        height: 100,
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.pink.shade50,

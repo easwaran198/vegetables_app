@@ -267,6 +267,22 @@ class _PaymentState extends ConsumerState<PaymentScreen> {
               },
             ),
 
+            _buildPaymentMethodOption(
+              context,
+              title: 'PhonePe',
+              subtitle: 'Pay using PhonePe UPI/Wallet',
+              icon: Icons.phone_android,
+              methodValue: 'phonepe',
+              isSelected: selectedPaymentMethod == 'phonepe',
+              onTap: () {
+                setState(() {
+                  selectedPaymentMethod = 'phonepe';
+                });
+              },
+            ),
+
+
+
           ],
         ),
       ),
@@ -283,15 +299,18 @@ class _PaymentState extends ConsumerState<PaymentScreen> {
                 backgroundColor: Colors.white,
                 textColor: Colors.black),
             InkWell(
-              onTap: () {
-                if (selectedPaymentMethod == 'razorpay') {
-                  _openCheckout();
-                } else if (selectedPaymentMethod == 'cod') {
-                  _handleCashOnDelivery();
-                }else if (selectedPaymentMethod == 'upi_take_away') {
-                  _handleCashOnDelivery();
-                }
-              },
+                onTap: () {
+                  print(selectedPaymentMethod);
+                  if (selectedPaymentMethod == 'razorpay') {
+                    _openCheckout();
+                  } else if (selectedPaymentMethod == 'cod') {
+                    _handleCashOnDelivery();
+                  } else if (selectedPaymentMethod == 'upi_take_away') {
+                    _handleCashOnDelivery();
+                  } else if (selectedPaymentMethod == 'phonepe') {
+                    _openPhonePeCheckout(); // new function
+                  }
+                },
               child: Container(
                 padding:
                 const EdgeInsets.only(left: 40, right: 40, top: 10, bottom: 10),
@@ -524,6 +543,53 @@ class _PaymentState extends ConsumerState<PaymentScreen> {
       SnackBar(content: Text('External Wallet Selected: ${response.walletName}')),
     );
   }
+
+  void _openPhonePeCheckout() {
+    String cleanTotalAmt = total_amt_string.replaceAll(',', '').trim();
+    double temp;
+    try {
+      temp = double.parse(cleanTotalAmt);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid total amount: $total_amt_string')),
+      );
+      return;
+    }
+    int amountInPaise = (temp * 100).round();
+
+    final profile = ref.read(profileNotifierProvider);
+
+    if (profile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('User profile not loaded. Cannot proceed with payment.')),
+      );
+      return;
+    }
+
+    var options = {
+      'key': 'rzp_test_W7JSd7hTzekaGo',
+      'amount': amountInPaise,
+      'name': 'Vegetables',
+      'description': 'Order Payment (PhonePe)',
+      'prefill': {
+        'contact': profile.mobileno,
+        'email': profile.mail,
+      },
+      'external': {
+        'wallets': ['phonepe'] // 👈 Force PhonePe option
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error opening Razorpay checkout: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to open PhonePe payment. Please try again.')),
+      );
+    }
+  }
+
 
   @override
   void dispose() {

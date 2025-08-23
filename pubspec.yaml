@@ -22,6 +22,7 @@ dependencies:
   json_annotation: ^4.8.1
   shared_preferences: ^2.0.15
   image_picker: ^1.1.2
+  phonepe_payment_sdk: ^3.0.1
 
 dev_dependencies:
   flutter_test:
