@@ -5,7 +5,8 @@ import 'package:vegetables_app/utils/token_interceptor.dart'; // Import your int
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://ttbilling.in/vegetable_app/api/',
+   // baseUrl: 'https://kaaivandi.com/api/',
+    baseUrl: 'https://kaaivandi.com/api/',
     headers: {'Content-Type': 'application/json'},
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),

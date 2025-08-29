@@ -9,7 +9,7 @@ class BannerService {
   BannerService(this._dio);
 
   Future<Response> getBanners() async {
-    return await _dio.get('http://ttbilling.in/vegetable_app/api/common/banner.php');
+    return await _dio.get('https://kaaivandi.com/api/common/banner.php');
   }
 }
 

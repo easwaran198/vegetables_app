@@ -39,7 +39,7 @@ class OrderNotifier extends StateNotifier<OrderState> {
   OrderNotifier() : super(OrderState()); // Initialize with default state
 
 
-  final String _baseUrl = "http://ttbilling.in/vegetable_app/api/common/my_orders.php";
+  final String _baseUrl = "https://kaaivandi.com/api/common/my_orders.php";
 
 
   Future<String?> _getToken() async {

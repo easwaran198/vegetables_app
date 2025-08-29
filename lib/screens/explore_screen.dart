@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
-import 'package:vegetables_app/models/frequent_product.dart';
 import 'package:vegetables_app/models/offer_product.dart';
 import 'package:vegetables_app/providers/home_data_notifier.dart';
 import 'package:vegetables_app/screens/product_detail_screen.dart';
@@ -11,13 +10,16 @@ import 'package:vegetables_app/widgets/MyTextContent.dart'; // Your custom text 
 import 'package:vegetables_app/models/product.dart'; // Your Product model
 import 'package:vegetables_app/widgets/quantity_selector.dart'; // Your API-integrated QuantitySelector
 
-
 class ExploreScreen extends ConsumerStatefulWidget {
+
+  const ExploreScreen({required ValueKey<String> key}
+  ) : super(key: key);
+
   @override
   ConsumerState<ExploreScreen> createState() => _ExploreScreenState();
 }
 
-class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTickerProviderStateMixin {
+class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTickerProviderStateMixin,AutomaticKeepAliveClientMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   final TextEditingController _searchController = TextEditingController();
@@ -36,6 +38,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
     );
     _controller.forward();
     _searchController.addListener(_onSearchChanged);
+    print("Explorescreen");
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Every time this widget is rebuilt while visible
+    //ref.refresh(wishListNotifierProvider);
   }
 
   @override
@@ -54,7 +64,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final productListAsyncValue = ref.watch(productListNotifierProvider("3"));
+    super.build(context);
+
+    final wishListAsyncValue = ref.watch(wishListNotifierProvider);
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
 
@@ -109,13 +121,13 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      MyHeadingText(text: "Explore Vegetables", fontSize: 19, backgroundColor: Colors.white, textColor: Colors.black),
+                      MyHeadingText(text: "Wishlist products", fontSize: 19, backgroundColor: Colors.white, textColor: Colors.black),
                     ],
                   ),
                 ),
                 const SizedBox(height: 6),
                 // --- Conditional UI based on productListAsyncValue state ---
-                productListAsyncValue.when(
+                wishListAsyncValue.when(
                   loading: () => const Center(child: CupertinoActivityIndicator()), // Show loading spinner
                   error: (err, stack) => Center(child: Text('Error: ${err.toString()}')), // Show error message
                   data: (products) {
@@ -174,6 +186,10 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> with SingleTicker
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 // -----------------------------------------------------------
@@ -245,9 +261,9 @@ class VegetableCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Allow price to take less space if needed
+
                 Flexible(
-                  child: MyHeadingText(text: "₹${item.price}", fontSize: 15, backgroundColor: Colors.white, textColor: Colors.black), // Slightly reduced font size
+                  child: MyHeadingText(text: "₹${item.price}", fontSize: 14, backgroundColor: Colors.white, textColor: Colors.black), // Slightly reduced font size
                 ),
                 Flexible(
                     child: Mytextcontent(text: "1 ${item.unit}", fontSize: 12, backgroundColor: Colors.white, textColor: Colors.black) // Slightly reduced font size
@@ -301,7 +317,6 @@ class OfferCard extends StatelessWidget {
     if (discountPercentage > 0 && discountPercentage < 100) {
       originalPrice = currentPrice / (1 - (discountPercentage / 100));
     }
-    // --- End Dynamic Calculation ---
 
     return Stack(
       children: [
@@ -362,7 +377,7 @@ class OfferCard extends StatelessWidget {
                 child: Image.network(
                   item.images.isNotEmpty ? item.images[0].imageUrl : 'assets/images/tomato.png', // Fallback to local asset
                   height: 80,
-                  width: 80,
+                  width: 120,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Image.asset('assets/images/tomato.png', height: 80, width: 80, fit: BoxFit.cover); // Fallback on error

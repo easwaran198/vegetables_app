@@ -5,8 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vegetables_app/models/profile_model.dart'; // Make sure this path is correct
 
 
-const String myProfileApiUrl = 'http://ttbilling.in/vegetable_app/api/common/my_profile.php';
-const String updateProfileApiUrl = 'https://ttbilling.in/vegetable_app/api/editprofile'; // Placeholder URL
+const String myProfileApiUrl = 'https://kaaivandi.com/api/common/my_profile.php';
+const String updateProfileApiUrl = 'https://kaaivandi.com/api/editprofile'; // Placeholder URL
 
 class ProfileService {
   Future<String?> _getToken() async {

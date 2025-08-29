@@ -23,7 +23,7 @@ class ProductService {
       print('Sending POST request with params: ${json.encode(params)}');
 
       final response = await _dio.post(
-        'http://ttbilling.in/vegetable_app/api/product_list',
+        'https://kaaivandi.com/api/product_list',
         data: params, // Send parameters in request body
         options: Options(
           headers: {
@@ -48,6 +48,40 @@ class ProductService {
       rethrow;
     }
   }
+  Future<Response> getWishList() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in.');
+    }
+
+    try {
+
+      final response = await _dio.post(
+        'https://kaaivandi.com/api/wishlist',
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+          },
+        ),
+      );
+
+      print('Request URL: ${response.requestOptions.uri}');
+
+      return response;
+    } on DioException catch (e) {
+      print('Dio error (getProducts): ${e.response?.statusCode} - ${e.response?.data}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Unauthorized. Your session may have expired. Please log in again.');
+      }
+      rethrow;
+    } catch (e) {
+      print('Error fetching products: $e');
+      rethrow;
+    }
+  }
 
   Future<Response> getProducts2({Map<String, dynamic>? params}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -59,7 +93,7 @@ class ProductService {
 
     try {
       final response = await _dio.get(
-        'http://ttbilling.in/vegetable_app/api/product_list',
+        'https://kaaivandi.com/api/product_list',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -90,7 +124,7 @@ class ProductService {
 
     try {
       final response = await _dio.get(
-        'http://ttbilling.in/vegetable_app/api/product_list',
+        'https://kaaivandi.com/api/product_list',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -99,9 +133,9 @@ class ProductService {
         ),
         queryParameters: params, // Add this line
       );
-      print("http://ttbilling.in/vegetable_app/api/product_list");
+      print("https://kaaivandi.com/api/product_list");
       //print(json.encode(response));
-      print(response);
+      print("offerlist : "+response.toString());
       return response;
     } on DioException catch (e) {
       print('Dio error (getProducts): ${e.response?.statusCode} - ${e.response?.data}');
@@ -124,7 +158,7 @@ class ProductService {
 
     try {
       final response = await _dio.get(
-        'https://ttbilling.in/vegetable_app/api/category',
+        'https://kaaivandi.com/api/category',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -132,7 +166,7 @@ class ProductService {
           },
         )
       );
-      print("https://ttbilling.in/vegetable_app/api/category");
+      print("https://kaaivandi.com/api/category");
       //print(json.encode(response));
       print(response);
       return response;
@@ -157,7 +191,7 @@ class ProductService {
 
     try {
       final response = await _dio.get(
-        'https://ttbilling.in/vegetable_app/api/frequent',
+        'https://kaaivandi.com/api/frequent',
         options: Options(
           headers: {
             'Content-Type': 'application/json',
@@ -165,7 +199,7 @@ class ProductService {
           },
         )
       );
-      print("https://ttbilling.in/vegetable_app/api/frequent");
+      print("https://kaaivandi.com/api/frequent");
       //print(json.encode(response));
       //print(response);
       return response;
@@ -192,7 +226,7 @@ class ProductService {
 
     try {
       final response = await _dio.get(
-        'http://ttbilling.in/vegetable_app/api/offer_products', // Assuming this is your offer products API endpoint
+        'https://kaaivandi.com/api/offer_products', // Assuming this is your offer products API endpoint
         options: Options(
           headers: {
             'Content-Type': 'application/json',

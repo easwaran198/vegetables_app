@@ -14,7 +14,7 @@ final termsProvider = FutureProvider<String>((ref) async {
 
   try {
     final response = await dio.get(
-      'http://ttbilling.in/vegetable_app/api/terms_conditions.php',
+      'https://kaaivandi.com/api/terms_conditions.php',
       options: Options(
         headers: {
           'Content-Type': 'application/json',

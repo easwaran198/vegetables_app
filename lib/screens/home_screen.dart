@@ -46,9 +46,22 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
       CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
     _controller.forward();
+
     checkLoginStatus();
     searchController.addListener(_onSearchChanged);
+
+    // 👇 Refresh data on widget creation
+    _refreshCurrentScreen();
   }
+
+  void _refreshCurrentScreen() {
+    if (_selectedIndex == 3) {
+      // Example: refresh cart
+      // Call provider / bloc / API / setState
+      print("Refreshing cart screen...");
+    }
+  }
+
 
   void _onSearchChanged() {
     setState(() {
@@ -81,9 +94,12 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
     setState(() {
       _selectedIndex = index;
     });
-    if (index == 3) {
+    if (index == 1) { // Wishlist tab
+      ref.invalidate(wishListNotifierProvider);
+      print('VegetableShopScreen: Wishlist tab tapped, invalidating wishListNotifierProvider.');
+    } else if (index == 3) { // Cart tab
       ref.invalidate(cartListProvider);
-      print('VegetableShopScreen: Cart tab tapped, invalidating cartListProvider directly.');
+      print('VegetableShopScreen: Cart tab tapped, invalidating cartListProvider.');
     }
   }
 
@@ -110,8 +126,8 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: 'Explore',
+            icon: Icon(Icons.favorite_outline_sharp),
+            label: 'Wishlist',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -130,7 +146,7 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
   Widget build(BuildContext context) {
     final List<Widget> screens = [
       _buildHomeScreenContent(context),
-      ExploreScreen(),
+      ExploreScreen(key: ValueKey('exploreTab_$_selectedIndex')), // Add key to force refresh
       ProfileScreen(),
       CartListScreen(
         key: ValueKey('cartTab_$_selectedIndex'),
@@ -360,17 +376,17 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
               child: const Center(child: CircularProgressIndicator()),
             ),
             error: (err, stack) => Container(
-              height: 160,
+              height: 40,
               margin: const EdgeInsets.only(bottom: 20),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error loading frequent orders',
+                      'No frequent orders here',
                       style: TextStyle(color: Colors.red[600], fontSize: 14),
                     ),
-                    const SizedBox(height: 8),
+                   /* const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: () {
                         ref.read(frequentOrderNotifierProvider.notifier).fetchFrequentOrders();
@@ -381,7 +397,7 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
                       child: const Text('Retry', style: TextStyle(fontSize: 12)),
-                    ),
+                    ),*/
                   ],
                 ),
               ),
@@ -416,7 +432,118 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
           ),
 
 
-          // Explore Vegetables Section
+
+            const SizedBox(height: 6),
+            Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.only(left: 12.0, right: 12.0, bottom: 8.0),
+              child: MyHeadingText(
+                text: "Offer products",
+                fontSize: 19,
+                backgroundColor: Colors.white,
+                textColor: Colors.black,
+              ),
+            ),
+
+            offerProductListAsyncValue.when(
+              loading: () => Container(
+                height: 160,
+                margin: const EdgeInsets.only(bottom: 20),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+              error: (err, stack) => Container(
+                height: 160,
+                margin: const EdgeInsets.only(bottom: 20),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error loading frequent orders',
+                        style: TextStyle(color: Colors.red[600], fontSize: 14),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.read(frequentOrderNotifierProvider.notifier).fetchFrequentOrders();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        ),
+                        child: const Text('Retry', style: TextStyle(fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              data: (offerProducts) {
+                if (offerProducts.isEmpty) {
+                  return Container(
+                    height: 160,
+                    margin: const EdgeInsets.only(bottom: 20),
+                    child: const Center(child: Text('No frequent orders found.')),
+                  );
+                }
+
+                return Container(
+                  height: 160,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: offerProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = offerProducts[index];
+                      return Container(
+                        width: 130,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: OfferCard2(product),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 6),
+
+            /*Container(
+              alignment: Alignment.topLeft,
+              padding: const EdgeInsets.all(12.0),
+              child: MyHeadingText(
+                text: "Best Offer",
+                fontSize: 20,
+                backgroundColor: Colors.white,
+                textColor: Colors.black,
+              ),
+            ),
+            offerProductListAsyncValue.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(child: Text('Error loading offers: ${err.toString()}')),
+              data: (offerProducts) {
+                final filteredOfferProducts = offerProducts.where((product) {
+                  final productNameLower = product.name.toLowerCase();
+                  final searchQueryLower = _searchQuery.toLowerCase();
+                  return productNameLower.contains(searchQueryLower);
+                }).toList();
+
+                if (filteredOfferProducts.isEmpty && _searchQuery.isNotEmpty) {
+                  return const Center(child: Text('No offers available matching your search.'));
+                } else if (filteredOfferProducts.isEmpty) {
+                  return const Center(child: Text('No offers available.'));
+                }
+
+                return Column(
+                  children: filteredOfferProducts.map((item) => ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: OfferCard(item),
+                  )).toList(),
+                );
+              },
+            )*/
+            // Explore Vegetables Section
             Container(
               margin: const EdgeInsets.only(left: 10, right: 10),
               child: Row(
@@ -453,7 +580,8 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
                   return const Center(child: Text('No products found.'));
                 }
                 return GridView.builder(
-                  itemCount: products.length > 6 ? 6 : products.length,
+                  itemCount: products.length,
+                  //itemCount: products.length > 6 ? 6 : products.length,
                   shrinkWrap: true,
                   padding: const EdgeInsets.all(5),
                   physics: const NeverScrollableScrollPhysics(),
@@ -483,44 +611,6 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
                 );
               },
             ),
-
-            const SizedBox(height: 6),
-
-            // Best Offers Section
-            Container(
-              alignment: Alignment.topLeft,
-              padding: const EdgeInsets.all(12.0),
-              child: MyHeadingText(
-                text: "Best Offer",
-                fontSize: 20,
-                backgroundColor: Colors.white,
-                textColor: Colors.black,
-              ),
-            ),
-            offerProductListAsyncValue.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error loading offers: ${err.toString()}')),
-              data: (offerProducts) {
-                final filteredOfferProducts = offerProducts.where((product) {
-                  final productNameLower = product.name.toLowerCase();
-                  final searchQueryLower = _searchQuery.toLowerCase();
-                  return productNameLower.contains(searchQueryLower);
-                }).toList();
-
-                if (filteredOfferProducts.isEmpty && _searchQuery.isNotEmpty) {
-                  return const Center(child: Text('No offers available matching your search.'));
-                } else if (filteredOfferProducts.isEmpty) {
-                  return const Center(child: Text('No offers available.'));
-                }
-
-                return Column(
-                  children: filteredOfferProducts.map((item) => ScaleTransition(
-                    scale: _scaleAnimation,
-                    child: OfferCard(item),
-                  )).toList(),
-                );
-              },
-            )
           ],
         ),
       ),
@@ -528,7 +618,6 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
   }
 }
 
-// Category Card Widget
 class CategoryCard extends StatelessWidget {
   final Category category;
 
@@ -562,6 +651,7 @@ class CategoryCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(height: 5,),
             Container(
               width: 50,
               height: 50,
@@ -597,7 +687,6 @@ class CategoryCard extends StatelessWidget {
   }
 }
 
-// Updated Frequent Product Card Widget
 class FrequentProductCard extends StatelessWidget {
   final Product product;
 
@@ -630,17 +719,22 @@ class FrequentProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(height: 15,),
             Expanded(
               flex: 3,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                child: Image.network(
-                  product.images.first ?? '',
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
+                child: Container(
+                  height: 100,
+                  margin: EdgeInsets.only(left: 10,right: 10,top: 5),
+                  child: Image.network(
+                    product.images.first ?? '',
+                    width: double.infinity,
+                    fit: BoxFit.fitWidth,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),

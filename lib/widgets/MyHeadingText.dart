@@ -7,6 +7,7 @@ class MyHeadingText extends StatelessWidget {
   final double fontSize;
   final Color? backgroundColor;
   final Color? textColor;
+  final bool underline; // ✅ new flag
 
   const MyHeadingText({
     Key? key,
@@ -14,6 +15,7 @@ class MyHeadingText extends StatelessWidget {
     required this.fontSize,
     required this.backgroundColor,
     required this.textColor,
+    this.underline = false, // ✅ default false
   }) : super(key: key);
 
   @override
@@ -21,7 +23,12 @@ class MyHeadingText extends StatelessWidget {
     return Text(
       text,
       textAlign: TextAlign.center,
-      style: GoogleFonts.quantico(color: textColor,fontSize: fontSize,fontWeight: FontWeight.bold),
+      style: GoogleFonts.quantico(
+        color: textColor,
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
+        decoration: underline ? TextDecoration.underline : TextDecoration.none, // ✅ underline toggle
+      ),
     );
   }
 }

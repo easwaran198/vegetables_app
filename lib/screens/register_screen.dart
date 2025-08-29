@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vegetables_app/models/register_res_data.dart';
 import 'package:vegetables_app/providers/register_notifier.dart';
+import 'package:vegetables_app/screens/login_screen.dart';
 import 'package:vegetables_app/screens/otp_screen.dart';
 import 'package:vegetables_app/utils/contants_color.dart';
 import 'package:vegetables_app/widgets/MyHeadingText.dart';
@@ -12,7 +13,6 @@ import 'package:vegetables_app/widgets/text_button.dart';
 class RegisterScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _RegisterScreenState();
-
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
@@ -45,19 +45,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                height: screenHeight*0.21,
-                  width: double.infinity,
+                height: screenHeight * 0.12,
+                  width: screenWidth,
                   decoration: BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage("assets/images/reg_top_img.png"),
-                      fit: BoxFit.fitHeight, // Or BoxFit.fill, BoxFit.contain, etc.
+                      fit: BoxFit.fill, // Or BoxFit.fill, BoxFit.contain, etc.
                     ),
                   )),
               Container(
                   height: screenHeight*0.15,
                   child: Image.asset("assets/images/logo.png")),
               MyHeadingText(text: "Create an Account", fontSize: 22, backgroundColor: Colors.white, textColor: Colors.black),
-              SizedBox(height: 10,),
+              SizedBox(height: 8,),
               Container(
                 margin: EdgeInsets.only(left: 20.0,right: 20.0),
                 child: Column(
@@ -79,7 +79,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       backgroundColor: Colors.white,
                       borderRadius: 30,
                     ),
-
                     SizedBox(height: 15,),
                     CustomTextFormField(
                       controller: phoneController,
@@ -139,7 +138,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 10,),
+              SizedBox(height: 8,),
               MyTextButton(text: "Register",
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
@@ -187,8 +186,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   }
                 },
                 backgroundColor: backgroundColor, textColor: Colors.white, padding: EdgeInsets.only(left: 50,right: 50,bottom: 10,top: 10),),
+              SizedBox(height: 8,),
+              InkWell(
+                  onTap: (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginScreen(),
+                      ),
+                    );
+                  },
+                  child: MyHeadingText(underline:true,text: "Account is already exists then \nPlease click and login here", fontSize: 15, backgroundColor: Colors.white, textColor: Colors.red)),
               Container(
-                  alignment: Alignment.topRight,
+                width: screenWidth,
+                height: screenHeight*0.23,
+                  alignment: Alignment.centerRight,
                   child: Image.asset("assets/images/reg_bottom_img.png"))
             ],
           ),

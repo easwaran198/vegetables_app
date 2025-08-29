@@ -21,7 +21,7 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
     try {
       final qparams = {
         "category": categoryId,
-        "offer": "1",
+        "offer": "",
         "page": 1,
         "limit": 10,
         "search_keyword" : ""
@@ -51,8 +51,45 @@ final productListNotifierProvider = StateNotifierProvider.family<
 });
 
 
+
+/// 🔹 Wish List Notifier
+class WishListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
+  WishListNotifier(this.ref) : super(const AsyncValue.loading()) {
+    fetchProducts();
+  }
+
+  final Ref ref;
+
+  Future<void> fetchProducts() async {
+    state = const AsyncValue.loading();
+    try {
+      final response = await ref.read(productServiceProvider).getWishList();
+
+      if (response.data['success'] == 'true' && response.data['product'] != null) {
+
+        final products = (response.data['product'] as List)
+            .map((json) => Product.fromJson(json))
+            .toList();
+        state = AsyncValue.data(products);
+      } else {
+        final errorMessage = response.data['message'] ?? 'Unknown error';
+        state = AsyncValue.error('Failed to load products: $errorMessage', StackTrace.current);
+      }
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+    }
+  }
+}
+
+
+final wishListNotifierProvider =
+StateNotifierProvider<WishListNotifier, AsyncValue<List<Product>>>(
+        (ref) => WishListNotifier(ref));
+
+
+
 /// 🔹 Offer Product Notifier
-class OfferProductNotifier extends StateNotifier<AsyncValue<List<OfferProduct>>> {
+class OfferProductNotifier extends StateNotifier<AsyncValue<List<Product>>> {
   OfferProductNotifier(this.ref) : super(const AsyncValue.loading()) {
     fetchOfferProducts();
   }
@@ -62,13 +99,18 @@ class OfferProductNotifier extends StateNotifier<AsyncValue<List<OfferProduct>>>
   Future<void> fetchOfferProducts() async {
     state = const AsyncValue.loading();
     try {
-      final qparams = {"category": ""};
+      final qparams = {
+        "category":"",
+        "offer":"1",
+        "page": 1,
+        "limit": 100
+      };
 
       final response = await ref.read(productServiceProvider).getOfferProducts(params: qparams);
 
       if (response.data['success'] == 'true' && response.data['product'] != null) {
         final products = (response.data['product'] as List)
-            .map((json) => OfferProduct.fromJson(json))
+            .map((json) => Product.fromJson(json))
             .toList();
         state = AsyncValue.data(products);
       } else {
@@ -82,7 +124,7 @@ class OfferProductNotifier extends StateNotifier<AsyncValue<List<OfferProduct>>>
 }
 
 final offerProductNotifierProvider =
-StateNotifierProvider<OfferProductNotifier, AsyncValue<List<OfferProduct>>>(
+StateNotifierProvider<OfferProductNotifier, AsyncValue<List<Product>>>(
         (ref) => OfferProductNotifier(ref));
 
 /// 🔹 Banner Notifier

@@ -158,7 +158,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                       return CartItemCard(
                         item: item,
                         currentQuantity: currentQuantity,
-                        onIncrement: () async {
+                        onIncrement : () async {
                           final newQuantity = currentQuantity + 1;
                           try {
                             await cartService.addToCart(item.productId, newQuantity);

@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vegetables_app/models/cart.dart'; // Ensure this path is correct
+import 'package:vegetables_app/models/cart.dart';
 
-const String cartListApiUrl = 'http://ttbilling.in/vegetable_app/api/cart_list';
-const String addToCartApiUrl = 'http://ttbilling.in/vegetable_app/api/add_to_cart';
-const String deleteCartApiUrl = 'http://ttbilling.in/vegetable_app/api/common/delete_cart.php';
-const String placeOrderApiUrl = 'http://ttbilling.in/vegetable_app/api/common/place_order.php'; // New API URL
+const String cartListApiUrl = 'https://kaaivandi.com/api/cart_list';
+const String addToCartApiUrl = 'https://kaaivandi.com/api/add_to_cart';
+const String addToWishlistApiUrl = 'https://kaaivandi.com/api/addwish';
+const String deleteCartApiUrl = 'https://kaaivandi.com/api/common/delete_cart.php';
+const String placeOrderApiUrl = 'https://kaaivandi.com/api/common/place_order.php'; // New API URL
 
 class CartService {
   Future<String?> _getToken() async {
@@ -108,6 +109,52 @@ class CartService {
       rethrow;
     }
   }
+  Future<Map<String, dynamic>> addToWishlist(String productId, int status) async {
+
+    final token = await _getToken();
+
+    if (token == null) {
+      throw Exception('Authentication token not found. Please log in to add items to your cart.');
+    }
+
+    try {
+      final Map<String, String> headers = {
+        'Content-Type': 'application/json',
+        'token': token,
+      };
+
+      final body = json.encode({
+        "productid": productId,
+        "fav": status.toString(), // API expects string for quantity
+      });
+
+      final response = await http.post(
+        Uri.parse(addToWishlistApiUrl),
+        headers: headers,
+        body: body,
+      );
+
+      print("Add to Cart API Request URL: $addToWishlistApiUrl");
+      print("Add to Cart API Request Headers: $headers");
+      print("Add to Cart API Request Body: $body");
+      print("Add to Cart API Response Status Code: ${response.statusCode}");
+      print("Add to Cart API Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        if (data['success'] == 'true') {
+          return data;
+        } else {
+          throw Exception('API Error: ${data['message']}');
+        }
+      } else {
+        throw Exception('Failed to addToWishlistApi: HTTP ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error adding addToWishlistApi: $e');
+      rethrow;
+    }
+  }
 
   // New method to delete item from cart
   Future<Map<String, dynamic>> deleteCartItem(String productId) async {
@@ -205,8 +252,6 @@ class CartService {
     }
   }
 }
-
-// --- Riverpod Providers ---
 
 final cartServiceProvider = Provider((ref) => CartService());
 

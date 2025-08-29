@@ -57,7 +57,7 @@ class _QuantitySelectorState extends ConsumerState<QuantitySelector> {
 
     try {
       final response = await dio.post(
-        'http://ttbilling.in/vegetable_app/api/add_to_cart',
+        'https://kaaivandi.com/api/add_to_cart',
         options: Options(
           headers: {
             'Content-Type': 'application/json',

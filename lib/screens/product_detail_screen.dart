@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vegetables_app/models/product.dart';
 import 'package:vegetables_app/providers/cart_provider.dart';
+import 'package:vegetables_app/providers/home_data_notifier.dart'; // Add this import
 import 'package:vegetables_app/screens/home_screen.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
@@ -24,18 +25,20 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
   late List<String> imageUrls;
   int selectedImageIndex = 0;
 
+  /// local mutable wishlist state
+  late int wishcount;
+
   @override
   void initState() {
     super.initState();
-    // Initialize quantity from product data, default to 1
+
     quantity = 1;
-
-    // Parse max quantity from string (e.g., "5kg" to 5)
     String maxString = widget.product.max.replaceAll('kg', '').trim();
-    maxQuantity = int.tryParse(maxString) ?? 5; // Default to 5 if parsing fails
+    maxQuantity = int.tryParse(maxString) ?? 5;
 
-    // Use product images from the passed product object
     imageUrls = widget.product.images;
+
+    wishcount = widget.product.wishcount; // copy initial wishlist value
 
     _controller = AnimationController(
       vsync: this,
@@ -47,6 +50,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
       end: const Offset(0, 0),
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
+    print(wishcount);
     _controller.forward();
   }
 
@@ -56,33 +60,26 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     super.dispose();
   }
 
-  // Function to add/update item in cart via API
   Future<void> _updateCartQuantity(int newQuantity) async {
-    final cartService = ref.read(cartServiceProvider); // Access the cart service
-    final productId = widget.product.id; // Assuming product.id is available
+    final cartService = ref.read(cartServiceProvider);
+    final productId = widget.product.id;
 
     try {
-      // Call the API to update the quantity
       await cartService.addToCart(productId, newQuantity);
-
-      // Update local state only if API call is successful
       setState(() {
         quantity = newQuantity;
       });
 
-      // Show a success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Updated ${widget.product.name} quantity to $newQuantity'),
-            backgroundColor: Colors.green,duration: const Duration(seconds: 1) // Added const
+          content: Text('Updated ${widget.product.name} quantity to $newQuantity'),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 1),
         ),
       );
 
-      // Invalidate cart list provider to refetch cart data on CartListScreen
       ref.invalidate(cartListProvider);
-
     } catch (e) {
-      // Show an error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to update cart: $e'),
@@ -92,16 +89,71 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
     }
   }
 
+  Future<void> _toggleWishlist() async {
+    final cartService = ref.read(cartServiceProvider);
+    final productId = widget.product.id;
+
+    var newStatus = 0;
+    if(wishcount == 0){
+      newStatus = 1;
+    }else{
+
+    }
+
+    print(wishcount);
+    print(newStatus);
+
+    try {
+      await cartService.addToWishlist(productId, newStatus);
+
+
+
+      // CRITICAL: Invalidate the wishlist provider to refresh the data
+      ref.invalidate(wishListNotifierProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newStatus == 1
+                ? 'Added ${widget.product.name} to wishlist'
+                : 'Removed ${widget.product.name} from wishlist',
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 1),
+        ),
+      );
+
+      setState(() {
+        wishcount = newStatus;
+      });
+      // Navigate back to wishlist screen (index 1)
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => VegetableShopScreen(initialIndex: 1)
+          )
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update wishlist: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Access the passed product data using widget.product
-    final Product product = widget.product;
+    final product = widget.product;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
+            // top bar
             Padding(
               padding: const EdgeInsets.all(12.0),
               child: Row(
@@ -115,38 +167,36 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                 ],
               ),
             ),
+
+            // main image
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 500),
               switchInCurve: Curves.easeInOut,
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return ScaleTransition(
-                  scale: animation,
-                  child: child,
-                );
-              },
+              transitionBuilder: (child, animation) =>
+                  ScaleTransition(scale: animation, child: child),
               child: imageUrls.isNotEmpty
                   ? Image.network(
                 imageUrls[selectedImageIndex],
-                key: ValueKey<String>(imageUrls[selectedImageIndex] + selectedImageIndex.toString()),
+                key: ValueKey(
+                    imageUrls[selectedImageIndex] + selectedImageIndex.toString()),
                 height: 200,
                 fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/tomato.png', // Fallback for network image errors
-                    key: ValueKey<String>('assets/images/tomato' + selectedImageIndex.toString()),
-                    height: 200,
-                    fit: BoxFit.contain,
-                  );
-                },
+                errorBuilder: (_, __, ___) => Image.asset(
+                  'assets/images/tomato.png',
+                  height: 200,
+                  fit: BoxFit.contain,
+                ),
               )
                   : Image.asset(
-                'assets/images/tomato.png', // Fallback if imageUrls is empty
-                key: ValueKey<String>('assets/images/tomato'),
+                'assets/images/tomato.png',
+                key: const ValueKey('assets/images/tomato'),
                 height: 200,
                 fit: BoxFit.contain,
               ),
             ),
             const SizedBox(height: 5),
+
+            // thumbnails
             SizedBox(
               height: 70,
               child: ListView.builder(
@@ -155,18 +205,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                 itemCount: imageUrls.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedImageIndex = index;
-                      });
-                    },
+                    onTap: () => setState(() => selectedImageIndex = index),
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 5),
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: selectedImageIndex == index ? Colors.red : Colors.transparent,
+                          color: selectedImageIndex == index
+                              ? Colors.red
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -176,9 +224,12 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                           height: 50,
                           width: 60,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Image.asset('assets/images/tomato.png', height: 50, width: 60, fit: BoxFit.cover);
-                          },
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/images/tomato.png',
+                            height: 50,
+                            width: 60,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),
@@ -187,6 +238,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
               ),
             ),
             const SizedBox(height: 10),
+
+            // slide-up section
             Expanded(
               child: SlideTransition(
                 position: _slideAnimation,
@@ -194,17 +247,18 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.green.shade50.withOpacity(0.4),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Title + Cart Icon
+                      // title row
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            product.name, // Dynamic product name
+                            product.name,
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -215,6 +269,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                       ),
                       const SizedBox(height: 4),
 
+                      // rating
                       Row(
                         children: [
                           ...List.generate(
@@ -222,7 +277,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                                 (index) => Icon(
                               index < double.parse(product.rating).floor()
                                   ? Icons.star
-                                  : Icons.star_border, // Show half star if needed
+                                  : Icons.star_border,
                               color: Colors.orange,
                               size: 16,
                             ),
@@ -233,7 +288,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                       ),
                       const SizedBox(height: 8),
 
-                      // Price + Quantity
+                      // price + quantity
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -241,7 +296,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: "₹${product.price} ", // Dynamic price
+                                  text: "₹${product.price} ",
                                   style: const TextStyle(
                                     color: Colors.green,
                                     fontSize: 22,
@@ -249,20 +304,15 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                                   ),
                                 ),
                                 TextSpan(
-                                  text: "/ 1${product.unit}", // Dynamic unit
+                                  text: "/ 1${product.unit}",
                                   style: const TextStyle(
                                     color: Colors.black87,
                                     fontSize: 16,
                                   ),
                                 ),
-                                const TextSpan(
-                                  text: "  ",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                const TextSpan(text: "  "),
                                 TextSpan(
-                                  text: "max ${product.max}", // Dynamic max quantity
+                                  text: "max ${product.max}",
                                   style: const TextStyle(
                                     color: Colors.deepPurpleAccent,
                                     fontSize: 16,
@@ -278,7 +328,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                                     color: Colors.red),
                                 onPressed: () {
                                   if (quantity > 1) {
-                                    _updateCartQuantity(quantity - 1); // Call API on decrement
+                                    _updateCartQuantity(quantity - 1);
                                   }
                                 },
                               ),
@@ -288,30 +338,31 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                                     ScaleTransition(
                                         scale: animation, child: child),
                                 child: Text(
-                                  '$quantity ${product.unit}', // Display selected quantity with unit
+                                  '$quantity ${product.unit}',
                                   key: ValueKey<int>(quantity),
                                   style: const TextStyle(fontSize: 16),
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.add_circle, color: Colors.red),
-                                onPressed: () {
-                                  // Removed if (quantity < maxQuantity) to allow _updateCartQuantity to handle max
-                                  _updateCartQuantity(quantity + 1); // Call API on increment
-                                },
+                                icon: const Icon(Icons.add_circle,
+                                    color: Colors.red),
+                                onPressed: () =>
+                                    _updateCartQuantity(quantity + 1),
                               ),
                             ],
                           ),
                         ],
                       ),
                       const SizedBox(height: 2),
-                      const Text("Delivery by Apr 3, Thur", // This might also be dynamic
+                      const Text("Delivery by Apr 3, Thur",
                           style: TextStyle(color: Colors.black87)),
                       const SizedBox(height: 5),
 
                       const Text("Product Benefits",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green)),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Colors.green)),
                       const SizedBox(height: 5),
 
                       Container(
@@ -320,36 +371,42 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.pink.shade50,
-                          border: Border.all(
-                              color: Colors.black26,
-                              style: BorderStyle.solid),
+                          border: Border.all(color: Colors.black26),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          product.productBenefits, // Dynamic product benefits
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          product.productBenefits,
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                         ),
                       ),
 
                       const Spacer(),
 
-                      // Buttons
+                      // wishlist + buy buttons
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
-                              onPressed: () async {
-                                await _updateCartQuantity(quantity);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=> VegetableShopScreen(initialIndex: 3,)));
-                              },
-                              icon: const Icon(Icons.add_shopping_cart,
-                                  color: Colors.red),
-                              label: const Text("Add to Cart",
-                                  style: TextStyle(color: Colors.black)),
+                              onPressed: _toggleWishlist,
+                              icon: Icon(
+                                wishcount == 1
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.red,
+                              ),
+                              label: Text(
+                                wishcount == 1
+                                    ? "Remove from Wishlist"
+                                    : "Add to Wishlist",
+                                style:
+                                const TextStyle(color: Colors.black),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: Colors.red),
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30)),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                                 padding:
                                 const EdgeInsets.symmetric(vertical: 14),
                               ),
@@ -359,16 +416,24 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
                           Expanded(
                             child: ElevatedButton(
                               onPressed: () async {
-                                // Buy now logic here (usually adds to cart and then proceeds to checkout)
-                                await _updateCartQuantity(quantity); // Ensure current quantity is added
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=> VegetableShopScreen(initialIndex: 3,)));
+                                await _updateCartQuantity(quantity);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        VegetableShopScreen(initialIndex: 3),
+                                  ),
+                                );
                               },
-                              child: Text("Buy ₹${double.parse(product.price) * quantity}", // Dynamic total price
-                                  style: const TextStyle(color: Colors.white)),
+                              child: Text(
+                                "Buy ₹${double.parse(product.price) * quantity}",
+                                style: const TextStyle(color: Colors.white),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30)),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
                                 padding:
                                 const EdgeInsets.symmetric(vertical: 14),
                               ),

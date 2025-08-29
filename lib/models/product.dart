@@ -6,6 +6,7 @@ class Product {
   final dynamic max;
   final dynamic rating;
   final dynamic tamilName;
+  final dynamic wishcount;
   final dynamic productBenefits;
   final List<String> images;
 
@@ -17,6 +18,7 @@ class Product {
     required this.max,
     required this.rating,
     required this.tamilName,
+    required this.wishcount,
     required this.productBenefits,
     required this.images,
   });
@@ -30,6 +32,7 @@ class Product {
       max: json['max'],
       rating: json['rating'],
       tamilName: json['tamil_name'],
+      wishcount: json['wishcount'],
       productBenefits: json['product_benefits'],
       images: (json['images'] as List<dynamic>).map((i) => i['image'] as String).toList(),
     );
