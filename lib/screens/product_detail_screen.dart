@@ -26,7 +26,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage>
   int selectedImageIndex = 0;
 
   /// local mutable wishlist state
-  late int wishcount;
+  late dynamic wishcount;
 
   @override
   void initState() {

@@ -7,7 +7,7 @@ import 'package:vegetables_app/widgets/CartIconWithBadge.dart';
 import 'package:vegetables_app/widgets/MyHeadingText.dart';
 import 'package:vegetables_app/widgets/MyTextContent.dart';
 import 'package:vegetables_app/providers/cart_provider.dart';
-import 'package:vegetables_app/models/cart.dart';
+import 'package:vegetables_app/models/cart.dart' hide Image;
 
 class CartListScreen extends ConsumerStatefulWidget {
   final int index;
@@ -82,9 +82,9 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                       textColor: Colors.black),
                   cartListAsyncValue.when(
                     data: (cartResponse) {
-                      final totalQty = cartResponse.cart.length;
+                      final totalQty = cartResponse.cart?.length;
                       return CartIconWithBadge(
-                        itemCount: totalQty,
+                        itemCount: totalQty!,
                         onPressed: () {
                           // Already on cart page, maybe refresh or do nothing
                         },
@@ -122,11 +122,11 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
             ),
             cartListAsyncValue.when(
               data: (cartResponse) {
-                final filteredCart = cartResponse.cart.where((item) {
-                  return item.productName.toLowerCase().contains(_searchQuery.toLowerCase());
+                final filteredCart = cartResponse.cart?.where((item) {
+                  return item.productName.toString().contains(_searchQuery.toLowerCase());
                 }).toList();
 
-                if (filteredCart.isEmpty) {
+                if (filteredCart!.isEmpty) {
                   return Expanded(
                     child: Center(
                       child: Mytextcontent(
@@ -142,7 +142,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   ref
                       .read(cartItemQuantitiesProvider.notifier)
-                      .setInitialQuantities(cartResponse.cart); // Use original cart to set quantities
+                      .setInitialQuantities(cartResponse.cart!); // Use original cart to set quantities
                 });
 
                 return Expanded(
@@ -152,7 +152,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                       final item = filteredCart[index];
                       final currentQuantity =
                           cartItemQuantities[item.productId] ??
-                              int.tryParse(item.qty) ??
+                              int.tryParse(item.qty.toString()) ??
                               0;
 
                       return CartItemCard(
@@ -161,8 +161,8 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                         onIncrement : () async {
                           final newQuantity = currentQuantity + 1;
                           try {
-                            await cartService.addToCart(item.productId, newQuantity);
-                            ref.read(cartItemQuantitiesProvider.notifier).incrementQuantity(item.productId);
+                            await cartService.addToCart(item.productId.toString(), newQuantity);
+                            ref.read(cartItemQuantitiesProvider.notifier).incrementQuantity(item.productId.toString());
                             ref.invalidate(cartListProvider);
                             _showSnackBar("Quantity updated successfully!");
                           } catch (e) {
@@ -174,8 +174,8 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                           if (currentQuantity > 1) {
                             final newQuantity = currentQuantity - 1;
                             try {
-                              await cartService.addToCart(item.productId, newQuantity);
-                              ref.read(cartItemQuantitiesProvider.notifier).decrementQuantity(item.productId);
+                              await cartService.addToCart(item.productId.toString(), newQuantity);
+                              ref.read(cartItemQuantitiesProvider.notifier).decrementQuantity(item.productId.toString());
                               ref.invalidate(cartListProvider);
                               _showSnackBar("Quantity updated successfully!");
                             } catch (e) {
@@ -188,8 +188,8 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                         },
                         onRemove: () async {
                           try {
-                            await cartService.deleteCartItem(item.productId);
-                            ref.read(cartItemQuantitiesProvider.notifier).removeProduct(item.productId);
+                            await cartService.deleteCartItem(item.productId.toString());
+                            ref.read(cartItemQuantitiesProvider.notifier).removeProduct(item.productId.toString());
                             ref.invalidate(cartListProvider);
                             _showSnackBar("Item removed from cart successfully!");
                           } catch (e) {
@@ -236,7 +236,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
             ),
             cartListAsyncValue.when(
               data: (cartResponse) {
-                if (cartResponse.cart.isEmpty) {
+                if (cartResponse.cart!.isEmpty) {
                   return SizedBox.shrink();
                 }
                 return Container(
@@ -275,7 +275,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => PaymentScreen(orderTotalAmount: cartResponse.totalAmount)));
+                                  builder: (context) => PaymentScreen(orderTotalAmount: cartResponse.totalAmount.toString())));
                         },
                         child: Container(
                           width: double.infinity,
@@ -309,7 +309,7 @@ class _CartListScreenState extends ConsumerState<CartListScreen> with AutomaticK
 
 // Your CartItemCard, VegetableCard, OfferCard definitions follow, they are fine
 class CartItemCard extends StatelessWidget {
-  final CartItem item;
+  final Cart item;
   final int currentQuantity;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
@@ -344,9 +344,9 @@ class CartItemCard extends StatelessWidget {
               children: [
                 Container(
                   height: screenHeight * 0.12,
-                  child: item.image.isNotEmpty
+                  child: item.image!.isNotEmpty
                       ? Image.network(
-                    item.image,
+                    item.image![0].image.toString(),
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) =>
                         Image.asset("assets/images/tomato.png"),
@@ -401,7 +401,7 @@ class CartItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Mytextcontent(
-                    text: item.productName,
+                    text: item.productName.toString(),
                     fontSize: 18,
                     backgroundColor: Colors.white,
                     textColor: Colors.black),
@@ -422,7 +422,7 @@ class CartItemCard extends StatelessWidget {
                   ],
                 ),
                 Mytextcontent(
-                    text: "(Total: ₹${double.parse(item.price) * currentQuantity})", // Calculate total amount based on local quantity
+                    text: "(Total: ₹${double.parse(item.price.toString()) * currentQuantity})", // Calculate total amount based on local quantity
                     fontSize: 15,
                     backgroundColor: Colors.white,
                     textColor: Colors.blue),

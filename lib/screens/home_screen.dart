@@ -56,8 +56,6 @@ class _VegetableShopScreenState extends ConsumerState<VegetableShopScreen> with 
 
   void _refreshCurrentScreen() {
     if (_selectedIndex == 3) {
-      // Example: refresh cart
-      // Call provider / bloc / API / setState
       print("Refreshing cart screen...");
     }
   }

@@ -267,8 +267,8 @@ final cartItemQuantitiesProvider = StateNotifierProvider<CartItemQuantitiesNotif
 class CartItemQuantitiesNotifier extends StateNotifier<Map<String, int>> {
   CartItemQuantitiesNotifier() : super({});
 
-  void setInitialQuantities(List<CartItem> items) {
-    state = {for (var item in items) item.productId: int.tryParse(item.qty) ?? 0};
+  void setInitialQuantities(List<Cart> items) {
+    state = {for (var item in items) item.id.toString(): int.tryParse(item.qty.toString()) ?? 0};
   }
 
   void incrementQuantity(String productId) {

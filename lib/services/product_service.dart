@@ -69,6 +69,7 @@ class ProductService {
       );
 
       print('Request URL: ${response.requestOptions.uri}');
+      print(response);
 
       return response;
     } on DioException catch (e) {
@@ -201,7 +202,7 @@ class ProductService {
       );
       print("https://kaaivandi.com/api/frequent");
       //print(json.encode(response));
-      //print(response);
+      print(response);
       return response;
     } on DioException catch (e) {
       print('Dio error (getFrequentOrders): ${e.response?.statusCode} - ${e.response?.data}');
