@@ -22,8 +22,8 @@ android {
         applicationId = "com.thanvitechnologies.vegetables_app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 3
+        versionName = "1.0.3"
     }
 
     buildTypes {
